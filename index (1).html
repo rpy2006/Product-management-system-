@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Expiry Tracker</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --warning-color: #f4a261;
+            --success-color: #2ec4b6;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 0 70px; /* Space for bottom nav */
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .subtitle {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 15px;
+            margin: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #3a56d4;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: #d90429;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+        }
+
+        .btn-warning:hover {
+            background: #e76f51;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background: #1baa9b;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .flex {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filters {
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: white;
+            color: var(--dark-color);
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: white;
+        }
+
+        .status-expired {
+            background: var(--danger-color);
+        }
+
+        .status-warning {
+            background: var(--warning-color);
+        }
+
+        .status-good {
+            background: var(--success-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f1f3f5;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-color);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+
+        .stat-label {
+            color: var(--gray-color);
+            font-size: 0.8rem;
+        }
+
+        .expired .stat-value {
+            color: var(--danger-color);
+        }
+
+        .warning .stat-value {
+            color: var(--warning-color);
+        }
+
+        .good .stat-value {
+            color: var(--success-color);
+        }
+
+        .total .stat-value {
+            color: var(--primary-color);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--gray-color);
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item i {
+            font-size: 1.4rem;
+            margin-bottom: 3px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        /* Top Tabs */
+        .top-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin: 15px 15px 0;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .top-tabs::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        .top-tab {
+            padding: 12px 15px;
+            white-space: nowrap;
+            cursor: pointer;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .top-tab.active {
+            color: var(--primary-color);
+        }
+
+        .top-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Product Card View */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-status-bar {
+            height: 5px;
+        }
+
+        .status-expired-bg {
+            background: var(--danger-color);
+        }
+
+        .status-warning-bg {
+            background: var(--warning-color);
+        }
+
+        .status-good-bg {
+            background: var(--success-color);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-content {
+            padding: 15px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .product-dates {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .product-category {
+            display: inline-block;
+            background: #f1f3f5;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .product-quantity {
+            font-weight: 500;
+        }
+
+        /* Image upload */
+        .image-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .image-upload-preview {
+            width: 150px;
+            height: 150px;
+            border: 2px dashed #ddd;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .image-upload-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .image-upload-preview .placeholder {
+            color: var(--gray-color);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .image-upload label {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .image-upload label:hover {
+            background: #3a56d4;
+        }
+
+        .image-upload input[type="file"] {
+            display: none;
+        }
+
+        /* Share modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-color);
+        }
+
+        .share-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .share-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark-color);
+        }
+
+        .share-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .facebook {
+            background: #3b5998;
+        }
+
+        .twitter {
+            background: #1da1f2;
+        }
+
+        .whatsapp {
+            background: #25d366;
+        }
+
+        .copy-link {
+            background: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding-bottom: 60px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-btn {
+                width: 100%;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Date picker styling */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.7;
+            filter: invert(0.5);
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        /* Icon styles */
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            stroke-width: 0;
+            stroke: currentColor;
+            fill: currentColor;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>PRODUCT MANAGEMENT SYSTEM</h1>
+    </header>
+
+    <div class="container">
+        <!-- Top Tabs -->
+        <div class="top-tabs">
+            <div class="top-tab active" data-tab="dashboard">Dashboard</div>
+            <div class="top-tab" data-tab="products">All Products</div>
+            <div class="top-tab" data-tab="expiring">Expiring Soon</div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div class="section active" id="dashboard-section">
+            <div class="stats">
+                <div class="stat-card total">
+                    <div class="stat-label">Total Products</div>
+                    <div class="stat-value" id="total-count">0</div>
+                </div>
+                <div class="stat-card good">
+                    <div class="stat-label">Good</div>
+                    <div class="stat-value" id="good-count">0</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">Expiring Soon</div>
+                    <div class="stat-value" id="warning-count">0</div>
+                </div>
+                <div class="stat-card expired">
+                    <div class="stat-label">Expired</div>
+                    <div class="stat-value" id="expired-count">0</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Priority Products</h2>
+                <div id="priority-products">
+                    <!-- Will be filled with expiring/expired products -->
+                </div>
+            </div>
+        </div>
+
+        <!-- All Products Section -->
+        <div class="section" id="products-section">
+            <div class="card">
+                <div class="filters flex">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="expired">Expired</button>
+                    <button class="filter-btn" data-filter="warning">Expiring Soon</button>
+                    <button class="filter-btn" data-filter="good">Good</button>
+                    <button class="filter-btn" data-filter="category">Category</button>
+                    <select id="category-filter" style="display: none; max-width: 150px;">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+
+                <div class="product-grid" id="all-products-grid">
+                    <!-- Will be filled with product cards -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Expiring Soon Section -->
+        <div class="section" id="expiring-section">
+            <div class="card">
+                <h2>Products Expiring Soon</h2>
+                <div class="product-grid" id="expiring-grid">
+                    <!-- Will be filled with expiring products -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Expired Products</h2>
+                <div class="product-grid" id="expired-grid">
+                    <!-- Will be filled with expired products -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Product Section (hidden by default) -->
+        <div class="section" id="add-section">
+            <div class="card">
+                <h2>Add New Product</h2>
+                <form id="product-form">
+                    <div class="image-upload">
+                        <div class="image-upload-preview" id="image-preview">
+                            <div class="placeholder">No image selected</div>
+                        </div>
+                        <label for="product-image">
+                            <i class="fas fa-camera"></i> Choose Image
+                        </label>
+                        <input type="file" id="product-image" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-name">Product Name</label>
+                        <input type="text" id="product-name" required placeholder="Enter product name">
+                    </div>
+                    <div class="form-group">
+                        <label for="manufacture-date">Manufacture Date</label>
+                        <input type="date" id="manufacture-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiry-date">Expiry Date</label>
+                        <input type="date" id="expiry-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" required placeholder="Enter quantity" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category (optional)</label>
+                        <input type="text" id="category" placeholder="e.g., Food, Medicine, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes (optional)</label>
+                        <textarea id="notes" rows="3" placeholder="Any additional notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-icon">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Library Section (hidden by default) -->
+        <div class="section" id="library-section">
+            <div class="card">
+                <h2>Product Library</h2>
+                <div class="filters flex">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="category">Category</button>
+                    <select id="library-category-filter" style="max-width: 150px;">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="product-grid" id="library-grid">
+                    <!-- Will be filled with product cards -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="#" class="nav-item" data-section="dashboard">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item" data-section="library">
+            <i class="fas fa-box-open"></i>
+            <span>Library</span>
+        </a>
+        <a href="#" class="nav-item active" data-section="add">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add</span>
+        </a>
+        <a href="#" class="nav-item" data-section="products">
+            <i class="fas fa-list"></i>
+            <span>Products</span>
+        </a>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="share-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Share Product</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="share-options">
+                <button class="share-btn" data-platform="facebook">
+                    <div class="share-icon facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </div>
+                    <span>Facebook</span>
+                </button>
+                <button class="share-btn" data-platform="twitter">
+                    <div class="share-icon twitter">
+                        <i class="fab fa-twitter"></i>
+                    </div>
+                    <span>Twitter</span>
+                </button>
+                <button class="share-btn" data-platform="whatsapp">
+                    <div class="share-icon whatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <span>WhatsApp</span>
+                </button>
+                <button class="share-btn" data-platform="copy">
+                    <div class="share-icon copy-link">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <span>Copy Link</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const productForm = document.getElementById('product-form');
+            const toast = document.getElementById('toast');
+            const imagePreview = document.getElementById('image-preview');
+            const productImageInput = document.getElementById('product-image');
+            const shareModal = document.getElementById('share-modal');
+            
+            // Navigation elements
+            const navItems = document.querySelectorAll('.nav-item');
+            const topTabs = document.querySelectorAll('.top-tab');
+            const sections = document.querySelectorAll('.section');
+            
+            // Stats elements
+            const totalCountEl = document.getElementById('total-count');
+            const goodCountEl = document.getElementById('good-count');
+            const warningCountEl = document.getElementById('warning-count');
+            const expiredCountEl = document.getElementById('expired-count');
+            
+            // Filter elements
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const categoryFilter = document.getElementById('category-filter');
+            const libraryCategoryFilter = document.getElementById('library-category-filter');
+            
+            // Grid containers
+            const allProductsGrid = document.getElementById('all-products-grid');
+            const expiringGrid = document.getElementById('expiring-grid');
+            const expiredGrid = document.getElementById('expired-grid');
+            const libraryGrid = document.getElementById('library-grid');
+            const priorityProducts = document.getElementById('priority-products');
+
+            // Initialize products array from localStorage or empty array
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            
+            // Initialize categories
+            let categories = JSON.parse(localStorage.getItem('categories')) || [];
+            updateCategoryFilters();
+
+            // Current filter states
+            let currentMainFilter = 'all';
+            let currentCategoryFilter = '';
+            let currentLibraryFilter = '';
+            let currentProductToShare = null;
+
+            // Image upload preview
+            productImageInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.innerHTML = `<img src="${e.target.result}" alt="Product Preview">`;
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.innerHTML = '<div class="placeholder">No image selected</div>';
+                }
+            });
+
+            // Form submission
+            productForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const productName = document.getElementById('product-name').value;
+                const manufactureDate = document.getElementById('manufacture-date').value;
+                const expiryDate = document.getElementById('expiry-date').value;
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const category = document.getElementById('category').value.trim();
+                const notes = document.getElementById('notes').value;
+                const imageFile = productImageInput.files[0];
+                
+                // Validate dates
+                if (new Date(expiryDate) < new Date(manufactureDate)) {
+                    showToast('Expiry date must be after manufacture date', 'error');
+                    return;
+                }
+                
+                // Create new product
+                const newProduct = {
+                    id: Date.now(),
+                    name: productName,
+                    manufactureDate: manufactureDate,
+                    expiryDate: expiryDate,
+                    quantity: quantity,
+                    category: category,
+                    notes: notes,
+                    addedDate: new Date().toISOString()
+                };
+                
+                // Handle image if uploaded
+                if (imageFile) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        newProduct.image = e.target.result;
+                        addProductToStorage(newProduct);
+                    }
+                    reader.readAsDataURL(imageFile);
+                } else {
+                    addProductToStorage(newProduct);
+                }
+            });
+            
+            // Function to add product to storage after processing
+            function addProductToStorage(product) {
+                // Add to products array
+                products.push(product);
+                
+                // Update categories if new
+                if (product.category && !categories.includes(product.category)) {
+                    categories.push(product.category);
+                    localStorage.setItem('categories', JSON.stringify(categories));
+                    updateCategoryFilters();
+                }
+                
+                // Save to localStorage
+                saveProducts();
+                
+                // Reset form
+                productForm.reset();
+                imagePreview.innerHTML = '<div class="placeholder">No image selected</div>';
+                
+                // Show success message
+                showToast('Product added successfully!');
+                
+                // Render products
+                renderAllViews();
+                
+                // Switch to products view
+                showSection('products');
+                setActiveNav('products');
+            }
+            
+            // Filter buttons click handler
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    
+                    if (filter === 'category') {
+                        currentMainFilter = 'category';
+                        categoryFilter.style.display = 'block';
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                    } else {
+                        currentMainFilter = filter;
+                        currentCategoryFilter = '';
+                        categoryFilter.style.display = 'none';
+                        categoryFilter.value = '';
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                    
+                    renderProductGrids();
+                });
+            });
+            
+            // Category filter change handler
+            categoryFilter.addEventListener('change', function() {
+                currentCategoryFilter = this.value;
+                renderProductGrids();
+            });
+            
+            // Library category filter change handler
+            libraryCategoryFilter.addEventListener('change', function() {
+                currentLibraryFilter = this.value;
+                renderLibraryView();
+            });
+            
+            // Navigation click handler
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.dataset.section;
+                    showSection(section);
+                    setActiveNav(section);
+                    
+                    // Reset to first tab when going to products
+                    if (section === 'products') {
+                        showTopTab('dashboard');
+                    }
+                });
+            });
+            
+            // Top tabs click handler
+            topTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    showTopTab(tabName);
+                });
+            });
+            
+            // Share modal handlers
+            document.querySelector('.close-modal').addEventListener('click', function() {
+                shareModal.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.share-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const platform = this.dataset.platform;
+                    shareProduct(currentProductToShare, platform);
+                });
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === shareModal) {
+                    shareModal.style.display = 'none';
+                }
+            });
+            
+            // Function to show a section
+            function showSection(sectionName) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                document.getElementById(`${sectionName}-section`).classList.add('active');
+            }
+            
+            // Function to show a top tab
+            function showTopTab(tabName) {
+                topTabs.forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabName) {
+                        tab.classList.add('active');
+                    }
+                });
+                
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                document.getElementById(`${tabName}-section`).classList.add('active');
+            }
+            
+            // Function to set active nav item
+            function setActiveNav(sectionName) {
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.section === sectionName) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+            
+            // Function to render all views
+            function renderAllViews() {
+                renderProductGrids();
+                renderPriorityView();
+                renderLibraryView();
+                updateStats();
+            }
+            
+            // Function to render product grids
+            function renderProductGrids() {
+                renderAllProductsView();
+                renderExpiringView();
+                renderExpiredView();
+            }
+            
+            // Function to render all products view
+            function renderAllProductsView() {
+                // Filter products
+                let filteredProducts = filterProductsByStatus(products, currentMainFilter, currentCategoryFilter);
+                
+                // Clear current grid
+                allProductsGrid.innerHTML = '';
+                
+                if (filteredProducts.length === 0) {
+                    allProductsGrid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <div>No products found</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Add products to grid
+                filteredProducts.forEach(product => {
+                    allProductsGrid.appendChild(createProductCard(product));
+                });
+            }
+            
+            // Function to render expiring soon view
+            function renderExpiringView() {
+                const expiringProducts = products.filter(product => getStatus(product.expiryDate) === 'warning');
+                
+                // Clear current grid
+                expiringGrid.innerHTML = '';
+                
+                if (expiringProducts.length === 0) {
+                    expiringGrid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-clock"></i>
+                            <div>No products expiring soon</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Add products to grid
+                expiringProducts.forEach(product => {
+                    expiringGrid.appendChild(createProductCard(product));
+                });
+            }
+            
+            // Function to render expired view
+            function renderExpiredView() {
+                const expiredProducts = products.filter(product => getStatus(product.expiryDate) === 'expired');
+                
+                // Clear current grid
+                expiredGrid.innerHTML = '';
+                
+                if (expiredProducts.length === 0) {
+                    expiredGrid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>No expired products</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Add products to grid
+                expiredProducts.forEach(product => {
+                    expiredGrid.appendChild(createProductCard(product));
+                });
+            }
+            
+            // Function to render priority view (for dashboard)
+            function renderPriorityView() {
+                // Get priority products (expired and expiring soon)
+                const priorityProductsList = products.filter(product => {
+                    const status = getStatus(product.expiryDate);
+                    return status === 'expired' || status === 'warning';
+                }).sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+                
+                // Clear current container
+                priorityProducts.innerHTML = '';
+                
+                if (priorityProductsList.length === 0) {
+                    priorityProducts.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <div>No priority products</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Show top 5 priority products
+                priorityProductsList.slice(0, 5).forEach(product => {
+                    priorityProducts.appendChild(createProductCard(product, true));
+                });
+                
+                if (priorityProductsList.length > 5) {
+                    const moreText = document.createElement('div');
+                    moreText.style.textAlign = 'center';
+                    moreText.style.marginTop = '10px';
+                    moreText.style.color = 'var(--gray-color)';
+                    moreText.textContent = `+${priorityProductsList.length - 5} more priority products`;
+                    priorityProducts.appendChild(moreText);
+                }
+            }
+            
+            // Function to render library view
+            function renderLibraryView() {
+                let filteredProducts = [...products];
+                
+                // Apply category filter if selected
+                if (currentLibraryFilter) {
+                    filteredProducts = filteredProducts.filter(product => product.category === currentLibraryFilter);
+                }
+                
+                // Clear current grid
+                libraryGrid.innerHTML = '';
+                
+                if (filteredProducts.length === 0) {
+                    libraryGrid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <div>No products found</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Add products to grid
+                filteredProducts.forEach(product => {
+                    libraryGrid.appendChild(createProductCard(product));
+                });
+            }
+            
+            // Function to create a product card
+            function createProductCard(product, small = false) {
+                const status = getStatus(product.expiryDate);
+                const statusClass = `status-${status}-bg`;
+                const statusText = status === 'expired' ? 'Expired' : 
+                                 status === 'warning' ? 'Expiring Soon' : 'Good';
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.dataset.id = product.id;
+                
+                // Image or placeholder
+                let imageContent = '';
+                if (product.image) {
+                    imageContent = `<img src="${product.image}" class="product-image" alt="${product.name}">`;
+                } else {
+                    imageContent = `
+                        <div style="height: 150px; display: flex; align-items: center; justify-content: center; background: #f1f3f5;">
+                            <i class="fas fa-box-open" style="font-size: 3rem; color: #ddd;"></i>
+                        </div>
+                    `;
+                }
+                
+                card.innerHTML = `
+                    <div class="product-status-bar ${statusClass}"></div>
+                    ${imageContent}
+                    <div class="product-content">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-dates">
+                            <div>Made: ${formatDate(product.manufactureDate)}</div>
+                            <div>Expires: ${formatDate(product.expiryDate)}</div>
+                        </div>
+                        ${product.category ? `<div class="product-category">${product.category}</div>` : ''}
+                        <div class="product-quantity">Quantity: ${product.quantity}</div>
+                        <div class="actions" style="margin-top: 10px;">
+                            <button class="btn btn-sm btn-danger delete-btn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            <button class="btn btn-sm share-btn" style="background: var(--primary-color);">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listener to delete button
+                card.querySelector('.delete-btn').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteProduct(product.id);
+                });
+                
+                // Add event listener to share button
+                card.querySelector('.share-btn').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    currentProductToShare = product;
+                    shareModal.style.display = 'flex';
+                });
+                
+                // Add click event to view details (could be expanded)
+                card.addEventListener('click', function() {
+                    // In a full app, this would show detailed view
+                    showToast(`Viewing ${product.name}`, 'info');
+                });
+                
+                return card;
+            }
+            
+            // Function to share a product
+            function shareProduct(product, platform) {
+                let shareUrl = '';
+                const productDetails = `Product: ${product.name}\nExpires: ${formatDate(product.expiryDate)}\nStatus: ${getStatus(product.expiryDate)}`;
+                
+                switch(platform) {
+                    case 'facebook':
+                        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(productDetails)}`;
+                        window.open(shareUrl, '_blank');
+                        break;
+                    case 'twitter':
+                        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(productDetails)}&url=${encodeURIComponent(window.location.href)}`;
+                        window.open(shareUrl, '_blank');
+                        break;
+                    case 'whatsapp':
+                        shareUrl = `https://wa.me/?text=${encodeURIComponent(productDetails + '\n' + window.location.href)}`;
+                        window.open(shareUrl, '_blank');
+                        break;
+                    case 'copy':
+                        navigator.clipboard.writeText(productDetails + '\n' + window.location.href);
+                        showToast('Link copied to clipboard!');
+                        break;
+                }
+                
+                shareModal.style.display = 'none';
+            }
+            
+            // Function to filter products by status and category
+            function filterProductsByStatus(productsList, filter, categoryFilter = '') {
+                let filtered = [...productsList];
+                
+                // Apply status filter
+                if (filter === 'expired') {
+                    filtered = filtered.filter(product => getStatus(product.expiryDate) === 'expired');
+                } else if (filter === 'warning') {
+                    filtered = filtered.filter(product => getStatus(product.expiryDate) === 'warning');
+                } else if (filter === 'good') {
+                    filtered = filtered.filter(product => getStatus(product.expiryDate) === 'good');
+                } else if (filter === 'category' && categoryFilter) {
+                    filtered = filtered.filter(product => product.category === categoryFilter);
+                }
+                
+                return filtered;
+            }
+            
+            // Function to get product status based on expiry date
+            function getStatus(expiryDate) {
+                const today = new Date();
+                const expiry = new Date(expiryDate);
+                const diffTime = expiry - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) {
+                    return 'expired';
+                } else if (diffDays <= 30) { // Warning if expires within 30 days
+                    return 'warning';
+                } else {
+                    return 'good';
+                }
+            }
+            
+            // Function to delete a product
+            function deleteProduct(id) {
+                if (confirm('Are you sure you want to delete this product?')) {
+                    products = products.filter(product => product.id !== id);
+                    saveProducts();
+                    renderAllViews();
+                    showToast('Product deleted successfully!');
+                }
+            }
+            
+            // Function to save products to localStorage
+            function saveProducts() {
+                localStorage.setItem('products', JSON.stringify(products));
+            }
+            
+            // Function to format date
+            function formatDate(dateString) {
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString(undefined, options);
+            }
+            
+            // Function to show toast notification
+            function showToast(message, type = 'success') {
+                toast.textContent = message;
+                toast.className = 'toast show';
+                
+                if (type === 'error') {
+                    toast.style.background = 'var(--danger-color)';
+                } else if (type === 'warning') {
+                    toast.style.background = 'var(--warning-color)';
+                } else if (type === 'info') {
+                    toast.style.background = 'var(--primary-color)';
+                } else {
+                    toast.style.background = 'var(--success-color)';
+                }
+                
+                setTimeout(() => {
+                    toast.className = 'toast';
+                }, 3000);
+            }
+            
+            // Function to update category filters
+            function updateCategoryFilters() {
+                categoryFilter.innerHTML = '<option value="">All Categories</option>';
+                libraryCategoryFilter.innerHTML = '<option value="">All Categories</option>';
+                
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoryFilter.appendChild(option.cloneNode(true));
+                    libraryCategoryFilter.appendChild(option);
+                });
+            }
+            
+            // Function to update statistics
+            function updateStats() {
+                totalCountEl.textContent = products.length;
+                
+                const goodCount = products.filter(p => getStatus(p.expiryDate) === 'good').length;
+                const warningCount = products.filter(p => getStatus(p.expiryDate) === 'warning').length;
+                const expiredCount = products.filter(p => getStatus(p.expiryDate) === 'expired').length;
+                
+                goodCountEl.textContent = goodCount;
+                warningCountEl.textContent = warningCount;
+                expiredCountEl.textContent = expiredCount;
+            }
+            
+            // Initialize the app
+            renderAllViews();
+            
+            // Set today's date as default for manufacture date
+            document.getElementById('manufacture-date').valueAsDate = new Date();
+            
+            // Set default expiry date to 1 year from now
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            document.getElementById('expiry-date').valueAsDate = nextYear;
+            
+            // Show add section by default
+            showSection('add');
+        });
+    </script>
+</body>
+</html>
